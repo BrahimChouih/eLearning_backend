@@ -1,0 +1,15 @@
+
+Features:
+
+Account:
+  ☐ Create model
+  ☐ Login (Generet token) (api)
+  ☐ Registration (api)
+
+
+Course:
+  ☐ Create model
+  ☐ Create api tools
+  ☐ test
+  
+
