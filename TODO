@@ -2,13 +2,13 @@
 Features:
 
 Account:
-  ☐ Create model
-  ☐ Login (Generet token) (api)
-  ☐ Registration (api)
+  ✔ Create model @done(20-09-27 13:43)
+  ✔ Login (Generet token) (api) @done(20-09-27 13:43)
+  ✔ Registration (api) @done(20-09-27 13:43)
 
 
 Course:
-  ☐ Create model
+  ✔ Create models @done(20-09-27 13:43)
   ☐ Create api tools
   ☐ test
   
