@@ -27,15 +27,15 @@ class Course(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(max_length=2000, null=True)
     owner = models.ForeignKey(
-        to=Account, on_delete=models.CASCADE, related_name='Course_owner')
+        Account, on_delete=models.CASCADE, related_name='Course_owner')
     create_at = models.DateTimeField(auto_now_add=True)
     cover = models.ImageField(upload_to=uploadImage)
     price = models.FloatField()
     rate = models.FloatField(default=0.0)
     numReviewers = models.IntegerField(default=0)
-    category = models.ForeignKey(to='Category', on_delete=models.DO_NOTHING)
+    category = models.ForeignKey('Category', on_delete=models.DO_NOTHING)
     students = models.ManyToManyField(
-        to=Account, related_name='Course_students')
+        Account, related_name='Course_students', blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -62,9 +62,9 @@ class Reviewer(models.Model):
 
 
 class Rater(models.Model):
-    owner = models.ForeignKey(to=Account, on_delete=models.CASCADE)
+    owner = models.ForeignKey(Account, on_delete=models.CASCADE)
     stars = models.FloatField(default=0.0)
-    rate_on = models.ForeignKey(to=Course, on_delete=models.CASCADE)
+    rate_on = models.ForeignKey(Course, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.owner.email + ' ( ' + self.rate_on.title + ' )'
@@ -80,11 +80,7 @@ class Rater(models.Model):
 
         course.numReviewers += 1
         course.save()
-        rater = Rater(
-            owner=self.owner,
-            stars=self.stars,
-            rate_on=self.rate_on,
-        )
+
         super().save(*args, **kwargs)
 
 
