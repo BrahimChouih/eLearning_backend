@@ -1,8 +1,7 @@
-from django.shortcuts import render
-
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework import viewsets
 
 from .serializers import *
 from course.models import Course
@@ -11,82 +10,37 @@ from accounts.models import Account
 ############################ course API #####################
 
 
-@api_view(['GET', ])
-@permission_classes((IsAuthenticated,))
-def courseList(request):
-    courses = Course.objects.all()
-    serializer = CourseSerializer(courses, many=True)
-    return Response(serializer.data)
+class CourseView(viewsets.ModelViewSet):
 
+    """
+    A viewset that provides default `create()`, `retrieve()`, `update()`,
+    `partial_update()`, `destroy()` and `list()` actions.
+    """
 
-@api_view(['GET', ])
-@permission_classes((IsAuthenticated,))
-def getCourse(request, courseId):
-    try:
-        course = Course.objects.get(id=courseId)
-        serializer = CourseSerializer(course, many=False)
-        return Response(serializer.data)
-    except:
-        return Response({'error': 'this is course in not existe'})
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated, ]
 
-
-@api_view(['POST', ])
-@permission_classes((IsAuthenticated,))
-def createCourse(request):
-    if request.method == 'POST':
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def create(self, request, *args, **kwargs):
         request.data['owner'] = request.user.id
         request.data['rate'] = 0.0
         request.data['numReviewers'] = 0
-        serializer = CourseSerializer(data=request.data)
+        return super().create(request, *args, **kwargs)
 
-        print(serializer.is_valid())
-        if serializer.is_valid():
-            serializer.save()
-
-            return Response({
-                'response': 'Successfully create a new course',
-                'course': serializer.data
-            })
+    def destroy(self, request, pk, *args, **kwargs):
+        course = Course.objects.get(id=pk)
+        if course.owner.id == request.user.id:
+            return super().destroy(request, pk, *args, **kwargs)
         else:
-            print(serializer.errors)
-            print(serializer.data)
-            return Response({
-                'response': 'failed create a new course',
-                'course': serializer.data['title']
-            })
+            return Response({'response': 'you don\'t have permission for this'})
 
-
-@ api_view(['PUT', ],)
-@ permission_classes((IsAuthenticated,))
-def updateCourse(requset, courseId):
-    if requset.method == 'PUT':
-        course = Course.objects.get(id=courseId)
-        if requset.user != course.owner:
-            return Response({'response': 'you don\'t have permission'})
-        serializer = CourseSerializer(instance=course, data=requset.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'response': 'updated successfully',
-                'course': serializer.data,
-            })
+    def partial_update(self, request, pk, *args, **kwargs):
+        course = Course.objects.get(id=pk)
+        if course.owner.id == request.user.id:
+            return super().partial_update(request, pk, *args, **kwargs)
         else:
-            return Response({
-                'response': 'updated failed',
-            })
-
-
-@ api_view(['DELETE', ],)
-@ permission_classes((IsAuthenticated,))
-def deleteCourse(requset, courseId):
-    if requset.method == 'DELETE':
-        course = Course.objects.get(id=courseId)
-        if requset.user != course.owner:
-            return Response({'response': 'you don\'t have permission'})
-        course.delete()
-        return Response({
-            'response': 'This Course is deleted',
-        })
+            return Response({'response': 'you don\'t have permission for this'})
 
 
 # {
@@ -109,21 +63,24 @@ def deleteCourse(requset, courseId):
 ######################### Rate API ################
 
 
-@ api_view(['POST', ])
-@ permission_classes((IsAuthenticated,))
-def rateCourse(request):
-    if request.method == 'POST':
-        request.data['owner'] = request.user.id
+class RaterView(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = Rater.objects.all()
+    serializer_class = RaterSerializer
+    permission_classes = [IsAuthenticated, ]
 
-        serializer = RaterSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'response': 'Successfully rate on this course',
-                'rate': serializer.data
-            })
-        else:
-            return Response({
-                'response': 'failed rate on this course',
-                'rate': serializer.data
-            })
+    def rateCourse(self, request, *args, **kwargs):
+        request.data['owner'] = request.user.id
+        try:
+            reter = Rater.objects.get(
+                owner=request.data['owner'], rate_on=request.data['rate_on'])
+            return Response({'response': 'you are rated this course before now'})
+        except:
+            return super().create(request, *args, **kwargs)
+
+    def getRaterOnCourse(self, request, pk, *args, **kwargs):
+        rater = Rater.objects.filter(rate_on=pk).values()
+
+        return Response(rater)

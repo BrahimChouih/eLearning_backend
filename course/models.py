@@ -71,14 +71,13 @@ class Rater(models.Model):
 
     def save(self, *args, **kwargs):
         course = self.rate_on
-
-        if course.numReviewers == 0:
-            course.rate = self.stars
-        else:
-            if not(course.rate == 5 and self.stars == 5):
-                course.rate = (self.stars + self.rate_on.rate)/2
-
         course.numReviewers += 1
+        raters = Rater.objects.filter(rate_on=course).values()
+        sumStars = 0
+        for stars in raters:
+            sumStars += stars['stars']
+        sumStars += self.stars
+        course.rate = sumStars / course.numReviewers
         course.save()
 
         super().save(*args, **kwargs)

@@ -3,13 +3,27 @@ from .views import *
 app_name = 'course'
 
 urlpatterns = [
-    path('courses/', courseList, name='All Courses'),
-    path('courses/<int:courseId>/', getCourse, name='get a course'),
-    path('courses/create/', createCourse, name='create a new course'),
-    path('courses/update/<int:courseId>/',
-         updateCourse, name='update a course'),
-    path('courses/delete/<int:courseId>/',
-         deleteCourse, name='delete a course'),
-    path('rate/', rateCourse, name='rate on course'),
-
+    ############## course API #####################
+    path('courses/',
+         CourseView.as_view({
+             'get': 'list',
+             'post': 'create',
+         }), name='All Courses'),
+    path('courses/<int:pk>/',
+         CourseView.as_view({
+             'get': 'retrieve',
+             'put': 'partial_update',
+             'delete': 'destroy',
+         }), name='get a course'),
+    #################### rate API ########################
+    path(
+        'rate/', RaterView.as_view({
+            'post': 'rateCourse',
+            'get': 'list',
+        }), name='rate on course'),
+    path(
+        'rate/<int:pk>', RaterView.as_view({
+            'get': 'getRaterOnCourse',
+        })
+    )
 ]

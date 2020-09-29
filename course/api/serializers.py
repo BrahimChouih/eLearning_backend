@@ -12,3 +12,9 @@ class RaterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rater
         fields = ['owner', 'stars', 'rate_on', ]
+
+
+class VideoSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Video
+        fields = '__all__'
