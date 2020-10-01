@@ -3,8 +3,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets
 
-from .serializers import *
-from course.models import Course
+from course.api.serializers import *
+from course.models import Course, Rater, Reviewer, Video
 from accounts.models import Account
 
 ############################ course API #####################
@@ -23,15 +23,17 @@ class CourseView(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def create(self, request, *args, **kwargs):
-        request.data['owner'] = request.user.id
+        request.data['owner'] = request.user
         request.data['rate'] = 0.0
         request.data['numReviewers'] = 0
+
         return super().create(request, *args, **kwargs)
 
     def destroy(self, request, pk, *args, **kwargs):
         course = Course.objects.get(id=pk)
         if course.owner.id == request.user.id:
-            return super().destroy(request, pk, *args, **kwargs)
+            super().destroy(request, pk, *args, **kwargs)
+            return Response({'response': 'Successfully delete this course'})
         else:
             return Response({'response': 'you don\'t have permission for this'})
 
@@ -72,7 +74,7 @@ class RaterView(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, ]
 
     def rateCourse(self, request, *args, **kwargs):
-        request.data['owner'] = request.user.id
+        request.data['owner'] = request.user
         try:
             reter = Rater.objects.get(
                 owner=request.data['owner'], rate_on=request.data['rate_on'])
@@ -81,6 +83,63 @@ class RaterView(viewsets.ModelViewSet):
             return super().create(request, *args, **kwargs)
 
     def getRaterOnCourse(self, request, pk, *args, **kwargs):
-        rater = Rater.objects.filter(rate_on=pk).values()
+        rater = Rater.objects.filter(rate_on=pk)
+        serializer = RaterSerializer(rater, many=True)
 
-        return Response(rater)
+        return Response(serializer.data)
+
+
+class ReviewersView(viewsets.ModelViewSet):
+
+    queryset = Reviewer.objects.all()
+    serializer_class = ReviewerSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            Reviewer.objects.get(
+                owner=request.user,
+                comment_on=request.data['comment_on'],
+            )
+            return Response({'response': 'your alrady writed a review on this course'})
+
+        except:
+            request.data['owner'] = request.user
+            return super().create(request, *args, **kwargs)
+
+    def partial_update(self, request, pk, *args, **kwargs):
+        try:
+            Reviewer.objects.get(id=pk, owner=request.user)
+            return super().partial_update(request, pk, *args, **kwargs)
+        except:
+            return Response({'response': 'you don\'t have permission for this'})
+
+    def destroy(self, request, pk, *args, **kwargs):
+        try:
+            Reviewer.objects.get(id=pk, owner=request.user)
+            super().destroy(request, pk, *args, **kwargs)
+            return Response({'response': 'Successfully delete this Reviewer'})
+
+        except:
+            return Response({'response': 'you don\'t have permission'})
+
+
+class VideoView(viewsets.ModelViewSet):
+    queryset = Video.objects.all()
+    serializer_class = VideoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def destroy(self, request, pk, *args, **kwargs):
+        try:
+            course = Video.objects.get(id=pk).course
+            Course.objects.get(id=course.id, owner=request.user)
+            super().destroy(request, pk, *args, **kwargs)
+            return Response({'response': 'Successfully delete this Reviewer'})
+
+        except:
+            return Response({'response': 'you don\'t have permission'})
+
+    def getVidoes(self, request, pk):
+        videos = Video.objects.filter(course=pk)
+        serializer = VideoSerializer(videos, many=True)
+        return Response(serializer.data)

@@ -51,7 +51,7 @@ class Account(AbstractBaseUser):
     picture = models.ImageField(upload_to=uploadImage, null=True)
     country = models.CharField(max_length=30, null=True)
     purchased_courses = models.ManyToManyField(
-        to="course.Course", related_name='purchased_courses', blank=True, null=True,)
+        to="course.Course", related_name='purchased_courses', blank=True)
 
     date_joined = models.DateTimeField(
         verbose_name='date joined', auto_now_add=True)

@@ -4,8 +4,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
 
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import viewsets
 
-from accounts.api.serializers import RegistrationSerializer
+from accounts.api.serializers import RegistrationSerializer, AccountSerializer, PurchasedCourses
+from accounts.models import Account
 
 
 @api_view(['POST', ])
@@ -29,26 +31,18 @@ def registration_view(request):
     return Response(serializer.data)
 
 
-def getUserInfo(request):
-    data = {}
-    data['id'] = request.user.id
-    data['email'] = request.user.email
-    data['username'] = request.user.username
-    data['country'] = request.user.country
+class AccountView(viewsets.ModelViewSet):
+    queryset = Account.objects.all()
+    serializer_class = AccountSerializer
+    permission_classes = [IsAuthenticated]
 
-    data['purchased_courses'] = request.user.purchased_courses.all().values()
+    def userInfo(self, request, pk):
+        # account = Account.objects.get(id=request.user.id)
+        data = AccountSerializer(request.user, many=False)
+        return Response(data.data)
 
-    try:
-        data['picture'] = request.user.picture.url
-    except:
-        data['picture'] = None
+    def updateUserInfo(self, request, pk, *args, **kwargs):
+        if(pk != request.user.id):
+            return Response({'response': 'this is not your account'})
 
-    return data
-
-
-@api_view(['POST', ])
-@permission_classes((IsAuthenticated,))
-def userInfo(request):
-    data = getUserInfo(request)
-
-    return Response(data)
+        return super().partial_update(request, pk, *args, **kwargs)

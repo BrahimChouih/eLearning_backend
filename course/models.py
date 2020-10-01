@@ -35,7 +35,7 @@ class Course(models.Model):
     numReviewers = models.IntegerField(default=0)
     category = models.ForeignKey('Category', on_delete=models.DO_NOTHING)
     students = models.ManyToManyField(
-        Account, related_name='Course_students', blank=True, null=True)
+        Account, related_name='Course_students', blank=True)
 
     def __str__(self):
         return self.title
@@ -56,9 +56,18 @@ class Reviewer(models.Model):
     comment = models.CharField(max_length=200, null=False)
     owner = models.ForeignKey(to=Account, on_delete=models.CASCADE)
     comment_on = models.ForeignKey(to=Course, on_delete=models.CASCADE)
+    rate = models.ForeignKey('Rater', on_delete=models.PROTECT, null=True)
+
+    def save(self, *args, **kwargs):
+        try:
+            self.rate = Rater.objects.get(owner=self.owner)
+        except:
+            print('ther is not rate from you no this course')
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.comment
+        return self.owner.email + ' ( ' + self.comment_on.title + ' )'
 
 
 class Rater(models.Model):

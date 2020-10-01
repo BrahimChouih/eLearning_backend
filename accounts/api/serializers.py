@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from accounts.models import Account
+from course.models import Course
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -23,3 +24,21 @@ class RegistrationSerializer(serializers.ModelSerializer):
         account.set_password(password)
         account.save()
         return account
+
+
+class PurchasedCourses(serializers.ModelSerializer):
+    owner = RegistrationSerializer(many=False)
+
+    class Meta:
+        model = Course
+        # fields = '__all__'
+        exclude = ('students',)
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    purchased_courses = PurchasedCourses(many=True)
+
+    class Meta:
+        model = Account
+        # fields = '__all__'
+        exclude = ('password',)

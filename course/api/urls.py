@@ -22,8 +22,36 @@ urlpatterns = [
             'get': 'list',
         }), name='rate on course'),
     path(
-        'rate/<int:pk>', RaterView.as_view({
+        'rate/<int:pk>/', RaterView.as_view({
             'get': 'getRaterOnCourse',
         })
-    )
+    ),
+    #################### reviewer API ########################
+
+    path(
+        'reviewers/', ReviewersView.as_view({
+            'get': 'list',
+            'post': 'create',
+        })
+    ),
+    path(
+        'reviewers/<int:pk>/', ReviewersView.as_view({
+            'put': 'partial_update',
+            'delete': 'destroy',
+        })
+    ),
+
+    #################### Video API ########################
+    path(
+        'videos/', VideoView.as_view({
+            'post': 'create',
+        })
+    ),
+
+    path(
+        'videos/<int:pk>/', VideoView.as_view({
+            'get': 'getVidoes',
+            'delete': 'destroy',
+        })
+    ),
 ]
