@@ -26,7 +26,7 @@ class CourseView(viewsets.ModelViewSet):
         request.data['owner'] = request.user
         request.data['rate'] = 0.0
         request.data['numReviewers'] = 0
-
+        
         return super().create(request, *args, **kwargs)
 
     def destroy(self, request, pk, *args, **kwargs):

@@ -1,12 +1,12 @@
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.authtoken.models import Token
 
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import viewsets
 
-from accounts.api.serializers import RegistrationSerializer, AccountSerializer, PurchasedCourses
+from accounts.api.serializers import RegistrationSerializer, AccountSerializer, AccountSerializer2, PurchasedCourses
 from accounts.models import Account
 
 
@@ -22,6 +22,7 @@ def registration_view(request):
             data['email'] = account.email
             data['username'] = account.username
             data['purchased_courses'] = []
+            data['course_made_by_me'] = []
 
             token = Token.objects.get(user=account).key
             data['token'] = token
@@ -36,6 +37,11 @@ class AccountView(viewsets.ModelViewSet):
     serializer_class = AccountSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AccountSerializer2
+        return AccountSerializer
+
     def userInfo(self, request, pk):
         # account = Account.objects.get(id=request.user.id)
         data = AccountSerializer(request.user, many=False)
@@ -44,5 +50,4 @@ class AccountView(viewsets.ModelViewSet):
     def updateUserInfo(self, request, pk, *args, **kwargs):
         if(pk != request.user.id):
             return Response({'response': 'this is not your account'})
-
         return super().partial_update(request, pk, *args, **kwargs)

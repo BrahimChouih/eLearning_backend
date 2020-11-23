@@ -42,3 +42,10 @@ class AccountSerializer(serializers.ModelSerializer):
         model = Account
         # fields = '__all__'
         exclude = ('password',)
+
+
+class AccountSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        # fields = '__all__'
+        exclude = ('password',)
