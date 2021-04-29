@@ -26,7 +26,7 @@ class CourseView(viewsets.ModelViewSet):
         request.data['owner'] = request.user
         request.data['rate'] = 0.0
         request.data['numReviewers'] = 0
-        
+
         return super().create(request, *args, **kwargs)
 
     def destroy(self, request, pk, *args, **kwargs):
@@ -43,6 +43,13 @@ class CourseView(viewsets.ModelViewSet):
             return super().partial_update(request, pk, *args, **kwargs)
         else:
             return Response({'response': 'you don\'t have permission for this'})
+    
+    def coursesMadeByUser(self,request,pk):
+        course = Course.objects.filter(owner=Account.objects.get(id=pk))
+        serializer = CourseSerializer(course,many=True)
+        return Response(serializer.data)
+
+
 
 
 # {

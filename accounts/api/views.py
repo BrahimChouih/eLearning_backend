@@ -43,8 +43,11 @@ class AccountView(viewsets.ModelViewSet):
         return AccountSerializer
 
     def userInfo(self, request, pk):
-        # account = Account.objects.get(id=request.user.id)
-        data = AccountSerializer(request.user, many=False)
+        if(pk==0):
+            data = AccountSerializer(request.user, many=False)
+        else:
+            account = Account.objects.get(id=pk)
+            data = AccountSerializer(account, many=False)
         return Response(data.data)
 
     def updateUserInfo(self, request, pk, *args, **kwargs):

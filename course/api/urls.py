@@ -15,6 +15,10 @@ urlpatterns = [
              'put': 'partial_update',
              'delete': 'destroy',
          }), name='get a course'),
+    path('coursesMadeByUser/<int:pk>/',
+         CourseView.as_view({
+             'get': 'coursesMadeByUser',
+         }), name='coursesMadeByUser'),
     #################### rate API ########################
     path(
         'rate/', RaterView.as_view({

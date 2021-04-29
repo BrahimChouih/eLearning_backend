@@ -31,8 +31,8 @@ class PurchasedCourses(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        # fields = '__all__'
-        exclude = ('students',)
+        fields = '__all__'
+        # exclude = ('students',)
 
 
 class AccountSerializer(serializers.ModelSerializer):
