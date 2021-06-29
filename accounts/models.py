@@ -6,13 +6,20 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
+from os import remove
 
 # Create your models here.
 
 
 def uploadImage(instance, fileName):
+    print(type(instance))
+    print(type(Account))
+    try:
+        Account.objects.get(id=instance.id).picture.delete()
+    except:
+        print('')
     imageName, extesion = fileName.split('.')
-    return 'users/%s.%s' % (instance.id, extesion)
+    return 'users/%s_%s.%s' % (instance.id, imageName, extesion)
 
 
 class MyAccountManager(BaseUserManager):
@@ -49,7 +56,7 @@ class Account(AbstractBaseUser):
     username = models.CharField(max_length=60, unique=True)
 
     picture = models.ImageField(upload_to=uploadImage, null=True)
-    country = models.CharField(max_length=30, null=True)
+    country = models.CharField(max_length=30, null=True,default='No Selected')
     purchased_courses = models.ManyToManyField(
         to="course.Course", related_name='purchased_courses', blank=True)
 
@@ -74,6 +81,7 @@ class Account(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return True
+
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 
 from course.api.serializers import *
-from course.models import Course, Rater, Reviewer, Video
+from course.models import Course, Reviewer, Video
 from accounts.models import Account
 
 ############################ course API #####################
@@ -43,13 +43,11 @@ class CourseView(viewsets.ModelViewSet):
             return super().partial_update(request, pk, *args, **kwargs)
         else:
             return Response({'response': 'you don\'t have permission for this'})
-    
-    def coursesMadeByUser(self,request,pk):
+
+    def coursesMadeByUser(self, request, pk):
         course = Course.objects.filter(owner=Account.objects.get(id=pk))
-        serializer = CourseSerializer(course,many=True)
+        serializer = CourseSerializer(course, many=True)
         return Response(serializer.data)
-
-
 
 
 # {
@@ -72,28 +70,28 @@ class CourseView(viewsets.ModelViewSet):
 ######################### Rate API ################
 
 
-class RaterView(viewsets.ModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
-    queryset = Rater.objects.all()
-    serializer_class = RaterSerializer
-    permission_classes = [IsAuthenticated, ]
+# class RaterView(viewsets.ModelViewSet):
+#     """
+#     API endpoint that allows users to be viewed or edited.
+#     """
+#     queryset = Rater.objects.all()
+#     serializer_class = RaterSerializer
+#     permission_classes = [IsAuthenticated, ]
 
-    def rateCourse(self, request, *args, **kwargs):
-        request.data['owner'] = request.user
-        try:
-            reter = Rater.objects.get(
-                owner=request.data['owner'], rate_on=request.data['rate_on'])
-            return Response({'response': 'you are rated this course before now'})
-        except:
-            return super().create(request, *args, **kwargs)
+#     def rateCourse(self, request, *args, **kwargs):
+#         request.data['owner'] = request.user
+#         try:
+#             reter = Rater.objects.get(
+#                 owner=request.data['owner'], rate_on=request.data['rate_on'])
+#             return Response({'response': 'you are rated this course before now'})
+#         except:
+#             return super().create(request, *args, **kwargs)
 
-    def getRaterOnCourse(self, request, pk, *args, **kwargs):
-        rater = Rater.objects.filter(rate_on=pk)
-        serializer = RaterSerializer(rater, many=True)
+#     def getRaterOnCourse(self, request, pk, *args, **kwargs):
+#         rater = Rater.objects.filter(rate_on=pk)
+#         serializer = RaterSerializer(rater, many=True)
 
-        return Response(serializer.data)
+#         return Response(serializer.data)
 
 
 class ReviewersView(viewsets.ModelViewSet):
@@ -108,17 +106,22 @@ class ReviewersView(viewsets.ModelViewSet):
                 owner=request.user,
                 comment_on=request.data['comment_on'],
             )
-            return Response({'response': 'your alrady writed a review on this course'})
-
-        except:
-            request.data['owner'] = request.user
+            return Response({'response': 'your alrady writed a review on this course'}, status=400)
+        except Exception as e:
             return super().create(request, *args, **kwargs)
+
+    def getReviewersOnCourse(self, request, pk):
+        reviewers = Reviewer.objects.filter(comment_on=pk)
+        serializer = ReviewerSerializer(reviewers, many=True)
+
+        return Response(serializer.data)
 
     def partial_update(self, request, pk, *args, **kwargs):
         try:
             Reviewer.objects.get(id=pk, owner=request.user)
             return super().partial_update(request, pk, *args, **kwargs)
-        except:
+        except Exception as e:
+            print(e)
             return Response({'response': 'you don\'t have permission for this'})
 
     def destroy(self, request, pk, *args, **kwargs):

@@ -5,22 +5,39 @@ from accounts.models import Account
 
 
 def uploadImage(instance, fileName):
-    if type(instance) == type(Course):
-        extesion = fileName.split('.')[1]
-        return 'courses/%s.%s' % (instance.id, extesion)
+    if type(instance) == Course:
+        # extesion = fileName.split('.')[1]
+        try:
+            Course.objects.get(id=instance.id).cover.delete()
+        except:
+            print('')
+        return 'courses/%s_%s' % (instance.id,fileName)
     else:
-        extesion = fileName.split('.')[1]
-        return 'categories/%s.%s' % (instance.id, extesion)
+        # extesion = fileName.split('.')[1]
+        try:
+            Category.objects.get(id=instance.id).image.delete()
+        except:
+            print('')
+        return 'categories/%s_%s' % (instance.id, fileName)
 
 
 def uploadThumbnail(instance, fileName):
-    extesion = fileName.split('.')[1]
-    return 'videos/thumbnail/%s.%s' % (instance.id, extesion)
+    # extesion = fileName.split('.')[1]
+    try:
+        Video.objects.get(id=instance.id).thumbnail.delete()
+    except:
+        print('')
+        
+    return 'videos/thumbnail/%s_%s' % (instance.id, fileName)
 
 
 def uploadVideo(instance, fileName):
-    extesion = fileName.split('.')[1]
-    return 'Videos/video/%s.%s' % (instance.id, extesion)
+    # extesion = fileName.split('.')[1]
+    try:
+        Video.objects.get(id=instance.id).video.delete()
+    except:
+        print('')
+    return 'Videos/video/%s_%s' % (instance.id, fileName)
 
 
 class Course(models.Model):
@@ -56,40 +73,28 @@ class Reviewer(models.Model):
     comment = models.CharField(max_length=200, null=False)
     owner = models.ForeignKey(to=Account, on_delete=models.CASCADE)
     comment_on = models.ForeignKey(to=Course, on_delete=models.CASCADE)
-    rate = models.ForeignKey('Rater', on_delete=models.PROTECT, null=True)
-
-    def save(self, *args, **kwargs):
-        try:
-            self.rate = Rater.objects.get(owner=self.owner)
-        except:
-            print('ther is not rate from you no this course')
-
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.owner.email + ' ( ' + self.comment_on.title + ' )'
-
-
-class Rater(models.Model):
-    owner = models.ForeignKey(Account, on_delete=models.CASCADE)
     stars = models.FloatField(default=0.0)
-    rate_on = models.ForeignKey(Course, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.owner.email + ' ( ' + self.rate_on.title + ' )'
+    # rate = models.ForeignKey('Rater', on_delete=models.PROTECT, null=True)
 
     def save(self, *args, **kwargs):
-        course = self.rate_on
+        # try:
+        #     self.rate = Rater.objects.get(owner=self.owner)
+        # except:
+        #     print('ther is not rate from you no this course')
+        course = self.comment_on
         course.numReviewers += 1
-        raters = Rater.objects.filter(rate_on=course).values()
+        reviewers = Reviewer.objects.filter(comment_on=course).values()
         sumStars = 0
-        for stars in raters:
+        for stars in reviewers:
             sumStars += stars['stars']
         sumStars += self.stars
         course.rate = sumStars / course.numReviewers
         course.save()
 
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.owner.email + ' ( ' + self.comment_on.title + ' )'
 
 
 class Category(models.Model):
@@ -101,3 +106,26 @@ class Category(models.Model):
 
     class Meta:
         verbose_name_plural = 'Categories'
+
+
+
+# class Rater(models.Model):
+#     owner = models.ForeignKey(Account, on_delete=models.CASCADE)
+#     stars = models.FloatField(default=0.0)
+#     rate_on = models.ForeignKey(Course, on_delete=models.CASCADE)
+
+#     def __str__(self):
+#         return self.owner.email + ' ( ' + self.rate_on.title + ' )'
+
+#     def save(self, *args, **kwargs):
+#         course = self.rate_on
+#         course.numReviewers += 1
+#         raters = Rater.objects.filter(rate_on=course).values()
+#         sumStars = 0
+#         for stars in raters:
+#             sumStars += stars['stars']
+#         sumStars += self.stars
+#         course.rate = sumStars / course.numReviewers
+#         course.save()
+
+#         super().save(*args, **kwargs)

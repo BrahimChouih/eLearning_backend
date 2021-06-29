@@ -1,5 +1,6 @@
-/media/
+media/
 db.sqlite3
 TODO
 **/__pycache__
-/.vscode/
+.vscode/
+migrations/

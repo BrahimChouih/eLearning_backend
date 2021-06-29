@@ -20,16 +20,16 @@ urlpatterns = [
              'get': 'coursesMadeByUser',
          }), name='coursesMadeByUser'),
     #################### rate API ########################
-    path(
-        'rate/', RaterView.as_view({
-            'post': 'rateCourse',
-            'get': 'list',
-        }), name='rate on course'),
-    path(
-        'rate/<int:pk>/', RaterView.as_view({
-            'get': 'getRaterOnCourse',
-        })
-    ),
+    # path(
+    #     'rate/', RaterView.as_view({
+    #         'post': 'rateCourse',
+    #         'get': 'list',
+    #     }), name='rate on course'),
+    # path(
+    #     'rate/<int:pk>/', RaterView.as_view({
+    #         'get': 'getRaterOnCourse',
+    #     })
+    # ),
     #################### reviewer API ########################
 
     path(
@@ -40,6 +40,7 @@ urlpatterns = [
     ),
     path(
         'reviewers/<int:pk>/', ReviewersView.as_view({
+            'get':'getReviewersOnCourse',
             'put': 'partial_update',
             'delete': 'destroy',
         })

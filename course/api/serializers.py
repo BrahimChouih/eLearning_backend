@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from course.models import Course, Video, Reviewer, Category, Rater
+from course.models import Course, Video, Reviewer, Category
 from accounts.api.serializers import RegistrationSerializer, PurchasedCourses
 from accounts.models import Account
 
@@ -38,24 +38,24 @@ class CourseSerializer(serializers.ModelSerializer):
         return course
 
 
-class RaterSerializer(serializers.ModelSerializer):
-    owner = RegistrationSerializer(many=False, read_only=True, required=False)
+# class RaterSerializer(serializers.ModelSerializer):
+#     owner = RegistrationSerializer(many=False, read_only=True, required=False)
 
-    class Meta:
-        model = Rater
-        fields = '__all__'
+#     class Meta:
+#         model = Rater
+#         fields = '__all__'
 
-    def create(self, *args, **kwargs):
-        owner = Account.objects.get(
-            id=self.context['request'].data['owner'].id)
+#     def create(self, *args, **kwargs):
+#         owner = Account.objects.get(
+#             id=self.context['request'].data['owner'].id)
 
-        rater = Rater(
-            owner=owner,
-            stars=self.validated_data['stars'],
-            rate_on=self.validated_data['rate_on'],
-        )
-        rater.save()
-        return rater
+#         rater = Rater(
+#             owner=owner,
+#             stars=self.validated_data['stars'],
+#             rate_on=self.validated_data['rate_on'],
+#         )
+#         rater.save()
+#         return rater
 
 
 class VideoSerializer(serializers.ModelSerializer):
@@ -85,7 +85,7 @@ class VideoSerializer(serializers.ModelSerializer):
 class ReviewerSerializer(serializers.ModelSerializer):
     owner = RegistrationSerializer(many=False, read_only=True, required=False)
     comment_on = CourseSerializer(many=False, read_only=True, required=False)
-    rate = RaterSerializer(many=False, read_only=True, required=False)
+    # rate = RaterSerializer(many=False, read_only=True, required=False)
 
     class Meta:
         model = Reviewer
@@ -93,7 +93,7 @@ class ReviewerSerializer(serializers.ModelSerializer):
 
     def create(self, *args, **kwargs):
         owner = Account.objects.get(
-            id=self.context['request'].data['owner'].id)
+            id=self.context['request'].user.id)
 
         comment_on = Course.objects.get(
             id=self.context['request'].data['comment_on'])
@@ -102,6 +102,7 @@ class ReviewerSerializer(serializers.ModelSerializer):
             owner=owner,
             comment=self.validated_data['comment'],
             comment_on=comment_on,
+            stars=self.validated_data['stars']
         )
         reviewer.save()
         return reviewer

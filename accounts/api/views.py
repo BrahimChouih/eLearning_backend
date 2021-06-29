@@ -43,7 +43,7 @@ class AccountView(viewsets.ModelViewSet):
         return AccountSerializer
 
     def userInfo(self, request, pk):
-        if(pk==0):
+        if(pk == 0):
             data = AccountSerializer(request.user, many=False)
         else:
             account = Account.objects.get(id=pk)
@@ -52,5 +52,16 @@ class AccountView(viewsets.ModelViewSet):
 
     def updateUserInfo(self, request, pk, *args, **kwargs):
         if(pk != request.user.id):
-            return Response({'response': 'this is not your account'})
+            return Response({'response': 'this is not your account'},status=400)
+
+        usernames = []
+        for i in Account.objects.all():
+            usernames.append(i.username.lower())
+
+        try:
+            if(request.data['username'].lower() in usernames):
+                return Response({"username": ["account with this username already exists."]},status=400)
+        except:
+            print('')
+
         return super().partial_update(request, pk, *args, **kwargs)
